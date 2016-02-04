@@ -10,6 +10,15 @@ if [ "$TRAVIS_REPO_SLUG" == "fgpv-vpgf/fgpv-vpgf" -a "$TRAVIS_PULL_REQUEST" == "
 
     if [ -n "$TRAVIS_TAG" ]; then
         DESTDIR="$DESTDIR/$TRAVIS_TAG/"
+
+        FILES=$(find build -type f)
+        for f in $FILES;
+        do
+          # echo "Processing $f file..."
+          # uploading to blob
+          azure storage blob upload $f rock "$TRAVIS_TAG/$f"
+        done
+
     else
         DESTDIR="$DESTDIR/$TRAVIS_BRANCH/"
     fi
