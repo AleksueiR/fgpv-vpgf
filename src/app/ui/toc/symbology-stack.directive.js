@@ -164,6 +164,7 @@ function rvSymbologyStack($q, Geo, animationService, layerRegistry, stateManager
         scope.$watch('self.showSymbologyToggle', value => {
             if (value) {
                 element.find('.md-icon-button').addClass('show');
+                $.link(element.find('.md-icon-button'));
             } else {
                 element.find('.md-icon-button').removeClass('show');
             }
