@@ -350,7 +350,7 @@ function rvSymbologyStack($q, Geo, animationService, layerRegistry, stateManager
             };
 
             // loop over ref.symbolItems, generate timeline for each one, increase total height
-            ref.symbolItems.reverse().forEach((symbolItem, index) => {
+            ref.symbolItems.forEach((symbolItem, index) => {
                 const heightIncrease = legendItemTLgenerator[self.symbology.renderStyle](timeline, symbolItem, totalHeight,
                     index === ref.symbolItems.length - 1);
 
