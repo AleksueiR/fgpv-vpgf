@@ -93,7 +93,7 @@ function identifyService($q, configService, stateManager, events) {
             // the subscribers can modify/add/remove the items returned by the results
             // if the items are removed from the `identifyResults[].data` array,
             // they will not be highlighted or shown in the details panel
-            mApi._identifySubject.next(allIdentifyResults);
+            // mApi._identifySubject.next(allIdentifyResults);
             return true;
         });
 
@@ -106,6 +106,55 @@ function identifyService($q, configService, stateManager, events) {
         const requester = {
             mapPoint: clickEvent.mapPoint
         };
+
+        ////
+
+        /*  const requester = {
+            mapPoint: clickEvent.mapPoint
+        }; */
+
+        /* interface IdentifyPackage {
+            requester: {
+                mapPoint: MapPoint
+            },
+            requests: {
+                requester: LayerInterface,
+                results: Promise<{ name: string, data: any[], oid: string, symbology: any[] }[]>
+            }[]
+        } */
+
+        const requests = identifyInstances.reduce((map, { identifyPromise, identifyResults }) => {
+            const instanceRequests = identifyResults.map(r => ({
+                requester: r.requester.proxy,
+                results: identifyPromise.then(() => r.data)
+            }));
+            return map.concat(instanceRequests);
+        }, []);
+
+        mApi._identifySubject.next({
+            requests,
+            requester
+        });
+
+        ////
+
+        /* RZ.mapInstances[0].identify.subscribe(event => {
+            console.log('%c Parsing identify results as they resolve', 'background: #222; color: #bada55');
+            const t0 = performance.now();
+
+            event.requests.forEach((r, index) => r.results.then(data => console.log(index, r.requester.name, data, `resolved in ${(performance.now() - t0).toFixed(2)} milliseconds`)));
+        });
+
+        RZ.mapInstances[0].identify.subscribe(event => {
+            const t0 = performance.now();
+            Promise.all(event.requests.map(r => r.results)).then(allResults => {
+                console.log('%c Waiting for all identify results to resolve first', 'background: #222; color: #bada55');
+                const t1 = performance.now() - t0;
+                allResults.forEach((data, index) => console.log(index, event.requests[index].requester.name, data, `resolved in ${t1.toFixed(2)} milliseconds`));
+
+                // allResults.forEach(data => data.splice(1));
+            });
+        }); */
 
         // show details panel only when there is data and the idenityfMode is set to `Details`
         if (mApi.identifyMode === IdentifyMode.Details) {
