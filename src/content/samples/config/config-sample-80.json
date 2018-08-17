@@ -80,36 +80,6 @@
                 "name": "root",
                 "children": [
                     {
-                        "layerId": "f_layer",
-                        "controlledIds": ["f_layer_4"]
-                    },
-                    {
-                        "layerId": "d_layer"
-                    },
-                    {
-                        "layerId": "w_layer"
-                    },
-                    {
-                        "layerId": "fs_layer"
-                    },
-                    {
-                        "layerId": "t_layer"
-                    },
-                    {
-                        "layerId": "i_layer"
-                    },
-                    {
-                        "name": "Group",
-                        "children": [
-                            {
-                                "layerId": "f_layer_2"
-                            },
-                            {
-                                "layerId": "f_layer_3"
-                            }
-                        ]
-                    },
-                    {
                         "layerId": "fs_layer_2"
                     }
                 ]

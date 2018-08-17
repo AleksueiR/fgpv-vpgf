@@ -217,7 +217,7 @@ function exportGenerators($q, $filter, $translate, configService, graphicsServic
      */
     function legendGenerator(exportSize) {
         // update `exportLegendService.generate` function to take ExportSize object as the first parameter
-        const legendPromise = exportLegendService.generate(exportSize.height, exportSize.width, 350);
+        const legendPromise = exportLegendService.generate(exportSize.height, exportSize.width, 850);
 
         return wrapOutput(legendPromise);
     }

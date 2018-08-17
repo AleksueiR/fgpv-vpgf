@@ -140,9 +140,17 @@ function layerRegistryFactory(
      * @return {Promise<LayerRecord>} promise of layer record with the id specified; undefined if not found
      */
     function getLayerRecordPromise(id) {
-        let layerRecordPromise = getLayerRecord(id);
+        let layerRecord = getLayerRecord(id);
+        if (layerRecord) {
+            return common.$q.resolve(layerRecord);
+        }
 
-        return layerRecordPromise ? common.$q.resolve(layerRecordPromise) : ref.generatingQueue[id];
+        let layerRecordPromise = ref.generatingQueue[id];
+        if (layerRecordPromise) {
+            return layerRecordPromise.promise;
+        }
+
+        return;
     }
 
     /**
@@ -160,8 +168,10 @@ function layerRegistryFactory(
             layerRecordPromise = _startGeneratingLayerRecord(layerBlueprint);
         }
 
+        // TODO: do we need to set `refreshAttributes` only once after the layer record is made? this code seems to set this everytime this function is called with the same layer blueprint
         layerRecordPromise.then(
-            layerRecord => (ref.refreshAttributes[layerRecord.layerId] = _attribsInvalidation(layerRecord))
+            layerRecord => (ref.refreshAttributes[layerRecord.layerId] = _attribsInvalidation(layerRecord)),
+            data => console.log('ha', data)
         );
 
         /**
@@ -218,17 +228,20 @@ function layerRegistryFactory(
         const layerRecords = configService.getSync.map.layerRecords;
 
         const layerRecord = getLayerRecord(layerBlueprint.config.id);
+        const generatingLayerRecord = ref.generatingQueue[layerBlueprint.config.id];
 
-        // if the record is not there, do nothing
-        if (!layerRecord) {
+        // if the record is not there, and even not being generated, do nothing
+        if (!layerRecord && !generatingLayerRecord) {
             return;
         }
 
-        common.$interval.cancel(ref.refreshAttributes[layerRecord.layerId]);
-        map.removeLayer(layerRecord._layer);
-        const index = layerRecords.indexOf(layerRecord);
-        // remove from the layerRecords
-        layerRecords.splice(index, 1);
+        if (layerRecord) {
+            common.$interval.cancel(ref.refreshAttributes[layerRecord.layerId]);
+            map.removeLayer(layerRecord._layer);
+            const index = layerRecords.indexOf(layerRecord);
+            // remove from the layerRecords
+            layerRecords.splice(index, 1);
+        }
 
         _startGeneratingLayerRecord(layerBlueprint, true);
     }
@@ -306,27 +319,47 @@ function layerRegistryFactory(
     function _startGeneratingLayerRecord(layerBlueprint, force = false) {
         const layerRecords = configService.getSync.map.layerRecords;
 
+        const lrpw = ref.generatingQueue[layerBlueprint.config.id];
+        if (lrpw) {
+            lrpw.rejectHandle();
+            shellService.clearLoadingFlag(layerBlueprint.config.id, 300);
+            delete ref.generatingQueue[layerBlueprint.config.id];
+        }
+
+        let rs;
+        let rj;
+
+        const pr = common.$q((resolve, reject) => {
+            rs = resolve;
+            rj = reject;
+        });
+
         // register a loading process for this layer record
         _setLoadingFlagHelper(layerBlueprint.config);
 
         // start generating a layer record
         let layerRecordPromise = layerBlueprint.makeLayerRecord(force);
-        ref.generatingQueue[layerBlueprint.config.id] = layerRecordPromise;
+        ref.generatingQueue[layerBlueprint.config.id] = {
+            promise: layerRecordPromise,
+            rejectHandle: rj
+        };
 
-        layerRecordPromise = layerRecordPromise.then(layerRecord => {
-            // remove from the generatig queue
-            delete ref.generatingQueue[layerBlueprint.config.id];
+        layerRecordPromise = layerRecordPromise
+            .then(layerRecord => {
+                // remove from the generatig queue
+                delete ref.generatingQueue[layerBlueprint.config.id];
 
-            // store the actual generated record
-            layerRecords.push(layerRecord);
+                // store the actual generated record
+                layerRecords.push(layerRecord);
 
-            // start tracking layer record events to update/clear its loading process
-            layerRecord.addStateListener(state => _onLayerLifecycleEvents(layerRecord, state));
+                // start tracking layer record events to update/clear its loading process
+                layerRecord.addStateListener(state => _onLayerLifecycleEvents(layerRecord, state));
 
-            return layerRecord;
-        });
+                return layerRecord;
+            })
+            .then(layerRecord => rs(layerRecord));
 
-        return layerRecordPromise;
+        return pr;
     }
 
     /**
