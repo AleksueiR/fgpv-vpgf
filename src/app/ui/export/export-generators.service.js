@@ -1,6 +1,7 @@
 /* global RV */
 
 import 'svg.textflow.js';
+import html2canvas from 'html2canvas';
 
 const EXPORT_IMAGE_GUTTER = 20; // padding around the export image
 const RETRY_LIMIT = 3;
@@ -162,7 +163,23 @@ function exportGenerators(
      *                  value {Object} - a modified value passed from the ExportComponent
      */
     function mapServerGenerator(exportSize, showToast, value, timeout = 0) {
-        const {
+
+
+        const canvas = document.createElement('canvas');
+        if (canvas.getContext) {
+            const ctx = canvas.getContext('2d');
+
+            ctx.fillRect(25, 25, 100, 100);
+            ctx.clearRect(45, 45, 60, 60);
+            ctx.strokeRect(50, 50, 50, 50);
+          }
+
+        const trueCanvasPromise = html2canvas(document.getElementById('esri.Map_0_root'), { allowTaint : false, useCORS: true });
+
+        return wrapOutput(trueCanvasPromise);
+        // return wrapOutput(Promise.resolve(canvas));
+
+        /* const {
             map: { instance: mapInstance },
             services: { exportMapUrl }
         } = configService.getSync;
@@ -249,7 +266,7 @@ function exportGenerators(
             });
 
             return wrapperPromise;
-        }
+        }*/
     }
 
     /**

@@ -16,6 +16,11 @@ import 'datatables.net-buttons/js/buttons.print.js';
 import 'datatables.net-colreorder';
 import 'datatables.net-scroller';
 import 'datatables.net-select';
+import html2canvas from 'html2canvas';
+
+window.html2canvas = html2canvas;
+
+console.log('html2canvas', html2canvas);
 
 // APPLICATION MAIN IMPORTS
 import './api-loader';
