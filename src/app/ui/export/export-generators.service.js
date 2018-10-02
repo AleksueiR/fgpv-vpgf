@@ -163,20 +163,81 @@ function exportGenerators(
      *                  value {Object} - a modified value passed from the ExportComponent
      */
     function mapServerGenerator(exportSize, showToast, value, timeout = 0) {
+        const canvas = graphicsService.createCanvas(exportSize.width, exportSize.height);
+        const ctx = canvas.getContext('2d');
 
+        const source = document.getElementById('esri.Map_0_root');
 
-        const canvas = document.createElement('canvas');
-        if (canvas.getContext) {
-            const ctx = canvas.getContext('2d');
+        const p = new Promise(resolve => {
 
-            ctx.fillRect(25, 25, 100, 100);
-            ctx.clearRect(45, 45, 60, 60);
-            ctx.strokeRect(50, 50, 50, 50);
-          }
+            source.querySelectorAll('img').forEach((element, index, array) => {
+                const tileOffset = offset(element, source);
+                console.log();
+            
+                imageLoader(element.src).then(
+                    img => {
+                        
+                        ctx.drawImage(img, tileOffset.left, tileOffset.top);
+                        if (array.length === index + 1) {
+                            resolve(canvas)
+                        }
+                    }
+                )
+            });
+        });
 
-        const trueCanvasPromise = html2canvas(document.getElementById('esri.Map_0_root'), { allowTaint : false, useCORS: true });
+        return wrapOutput(p);
 
-        return wrapOutput(trueCanvasPromise);
+        /*  const trueCanvasPromise = html2canvas(document.getElementById('esri.Map_0_root'), {
+            allowTaint: false,
+            useCORS: true
+        }); */
+
+        //return wrapOutput(trueCanvasPromise);
+
+        function imageLoader(src) {
+            const a = new Promise((resolve, reject) => {
+                const img = new Image();
+                img.onload = () => resolve(img);
+                //ios safari 10.3 taints canvas with data urls unless crossOrigin is set to anonymous
+                // if (!supportsDataImages || useCORS) {
+                    img.crossOrigin = 'anonymous';
+                // }
+
+                img.onerror = reject;
+                img.src = src;
+                if (img.complete === true) {
+                    // Inline XML images may fail to parse, throwing an Error later on
+                    setTimeout(() => {
+                        resolve(img);
+                    }, 500);
+                }
+                /* if (this.options.imageTimeout) {
+                    const timeout = this.options.imageTimeout;
+                    setTimeout(
+                        () =>
+                            reject(
+                                
+                                    `Timed out (${timeout}ms) fetching ${src.substring(0, 256)}`
+                                    
+                            ),
+                        timeout
+                    );
+                } */
+            });
+
+            return a;
+        }
+
+        function offset(element, container) {
+            const elementRect = element.getBoundingClientRect();
+            const containerRect = container.getBoundingClientRect();
+
+            return {
+                top: elementRect.top - containerRect.top,
+                left: elementRect.left - containerRect.left
+            };
+        }
         // return wrapOutput(Promise.resolve(canvas));
 
         /* const {

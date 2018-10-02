@@ -27,7 +27,7 @@ function exportComponentsService(
         map: {
             generators: [
                 exportGenerators.mapDummyGenerator,
-                // exportGenerators.mapLocalGenerator,
+                exportGenerators.mapLocalGenerator,
                 exportGenerators.mapServerGenerator
             ],
             graphicOrder: [0, 2, 1]
