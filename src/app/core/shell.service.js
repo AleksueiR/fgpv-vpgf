@@ -16,7 +16,7 @@ function shellService(common, errorService) {
         get isLoading() {
             return Object.values(service.loadingProcesses).some(process => process._state);
         },
-
+ffdgdfgdf
         setLoadingFlag,
         clearLoadingFlag,
         loadingProcesses: {}
