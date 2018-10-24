@@ -118,6 +118,8 @@ function identifyService($q, configService, gapiService, referenceService, state
             return map.concat(requests);
         }, []);
 
+        console.log('identifyRequests', identifyRequests);
+
         // push identify requests into the API stream
         // the subscribers can modify/add/remove the items returned by the results
         // if the items are removed from the `identifyResults[].data` array,
@@ -135,10 +137,16 @@ function identifyService($q, configService, gapiService, referenceService, state
             isLoaded: $q.all(allLoadingPromises).then(() => true)
         };
 
+        console.log('details', details);
+
         // store the mappoint in the requester so it's possible to show a marker if there is no feature to highlight
         const requester = {
             mapPoint: clickEvent.mapPoint
         };
+
+        console.log('requester', requester);
+
+        console.log('mApi.layers.identifyMode', mApi.layers.identifyMode);
 
         // show details panel only when there is data and the identifyMode is set to `Details`
         if (mApi.layers.identifyMode.includes(IdentifyMode.Details)) {
@@ -149,6 +157,8 @@ function identifyService($q, configService, gapiService, referenceService, state
             // highlight if the identifyMode is set fo 'Highlight'
             highlightIdentifyResults({ details, requester });
         }
+
+        console.log('details requester', details, requester);
 
         return { details, requester };
 
